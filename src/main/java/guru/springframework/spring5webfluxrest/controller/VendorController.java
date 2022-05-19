@@ -23,7 +23,7 @@ public class VendorController {
         return vendorRepository.findAll();
     }
 
-    @GetMapping("/api/v1/vendor/{id}")
+    @GetMapping("/api/v1/vendors/{id}")
     Mono<Vendor> getById(@PathVariable String id){
         return vendorRepository.findById(id);
     }
