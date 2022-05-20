@@ -8,11 +8,13 @@ import org.mockito.BDDMockito;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
+import org.reactivestreams.Publisher;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 
 class CategoryControllerTest {
     private AutoCloseable closeable;
@@ -55,5 +57,47 @@ class CategoryControllerTest {
                 .exchange()
                 .expectBody(Category.class);
 
+    }
+
+    @Test
+    public void testCreateCateogry() {
+        BDDMockito.given(mockCategoryRepository.saveAll(any(Publisher.class)))
+                .willReturn(Flux.just(Category.builder().description("descrp").build()));
+
+        Mono<Category> catToSaveMono = Mono.just(Category.builder().description("Some Cat").build());
+
+        Flux<Category> catToSaveFlux = Flux.just(Category.builder().description("Cat 1").build(),
+                Category.builder().description("Cat 2").build()
+                );
+
+        webTestClient.post()
+                .uri("/api/v1/categories")
+                .body(catToSaveMono, Category.class)
+                .exchange()
+                .expectStatus()
+                .isCreated();
+
+        webTestClient.post()
+                .uri("/api/v1/categories")
+                .body(catToSaveFlux, Category.class)
+                .exchange()
+                .expectStatus()
+                .isCreated();
+
+    }
+
+    @Test
+    public void TestUpdate() {
+        BDDMockito.given(mockCategoryRepository.save(any(Category.class)))
+                .willReturn(Mono.just(Category.builder().build()));
+
+        Mono<Category> catToUpdateMono = Mono.just(Category.builder().description("Some Cat").build());
+
+        webTestClient.put()
+                .uri("/api/v1/categories/asdfasdf")
+                .body(catToUpdateMono, Category.class)
+                .exchange()
+                .expectStatus()
+                .isOk();
     }
 }
