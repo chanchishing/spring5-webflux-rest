@@ -6,14 +6,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.BDDMockito;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.reactivestreams.Publisher;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 
 class CategoryControllerTest {
@@ -87,7 +85,7 @@ class CategoryControllerTest {
     }
 
     @Test
-    public void TestUpdate() {
+    public void testUpdate() {
         BDDMockito.given(mockCategoryRepository.save(any(Category.class)))
                 .willReturn(Mono.just(Category.builder().build()));
 
