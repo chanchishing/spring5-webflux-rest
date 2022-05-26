@@ -6,6 +6,7 @@ import guru.springframework.spring5webfluxrest.repositories.CategoryRepository;
 import guru.springframework.spring5webfluxrest.repositories.VendorRepository;
 import org.reactivestreams.Publisher;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -39,5 +40,36 @@ public class VendorController {
         vendor.setId(id);
         return vendorRepository.save(vendor);
     }
+
+    @PatchMapping("/api/v1/vendors/{id}")
+    Mono<Vendor> patch(@PathVariable String id, @RequestBody Vendor vendor, ServerHttpResponse response) {
+
+        return vendorRepository.findById(id)
+                .flatMap(vendorFound->{
+                    boolean patched=false;
+                    if (!vendorFound.getFirstname().equals(vendor.getFirstname())) {
+                        vendorFound.setFirstname(vendor.getFirstname());
+                        patched=true;
+                    }
+                    if ((vendor.getLastname()!==null) &&
+                            ()
+                            (!vendorFound.getLastname().equals(vendor.getLastname()))) {
+                        vendorFound.setLastname(vendor.getLastname());
+                        patched=true;
+                    }
+
+                    if (patched) {
+                        return vendorRepository.save(vendorFound);
+                    } else {
+                        return Mono.just(vendorFound);
+                    }
+                })
+                .switchIfEmpty(Mono.defer(() -> {
+                    response.setStatusCode(HttpStatus.NOT_FOUND);
+                    return Mono.empty();
+                }));
+    }
+
+
 
 }
