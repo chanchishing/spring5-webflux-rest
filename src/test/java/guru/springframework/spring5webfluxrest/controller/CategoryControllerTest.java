@@ -104,32 +104,20 @@ class CategoryControllerTest {
     }
 
     @Test
-    public void testPatch() {
-        given(mockCategoryRepository.save(any(Category.class)))
-                .willReturn(Mono.just(Category.builder().build()));
-
-        Mono<Category> catToUpdateMono = Mono.just(Category.builder().description("Some Cat").build());
-
-        webTestClient.patch()
-                .uri("/api/v1/categories/asdfasdf")
-                .body(catToUpdateMono, Category.class)
-                .exchange()
-                .expectStatus()
-                .isOk();
-    }
-
-    @Test
     public void testPatchWithChanges() {
-        given(mockCategoryRepository.findById(anyString()))
-                .willReturn(Mono.just(Category.builder().build()));
+
+
+        given(mockCategoryRepository.findById(any(String.class)))
+                .willReturn(Mono.just(Category.builder().id("someID").description("old description").build()));
+
 
         given(mockCategoryRepository.save(any(Category.class)))
                 .willReturn(Mono.just(Category.builder().build()));
 
-        Mono<Category> catToUpdateMono = Mono.just(Category.builder().description("New Description").build());
+        Mono<Category> catToUpdateMono = Mono.just(Category.builder().description("some description").build());
 
         webTestClient.patch()
-                .uri("/api/v1/categories/asdfasdf")
+                .uri("/api/v1/categories/someID")
                 .body(catToUpdateMono, Category.class)
                 .exchange()
                 .expectStatus()
@@ -141,10 +129,10 @@ class CategoryControllerTest {
     @Test
     public void testPatchNoChanges() {
         given(mockCategoryRepository.findById(anyString()))
-                .willReturn(Mono.just(Category.builder().build()));
+                .willReturn(Mono.empty());
 
-        given(mockCategoryRepository.save(any(Category.class)))
-                .willReturn(Mono.just(Category.builder().build()));
+        //given(mockCategoryRepository.save(any(Category.class)))
+        //        .willReturn(Mono.just(Category.builder().build()));
 
         Mono<Category> catToUpdateMono = Mono.just(Category.builder().build());
 
@@ -153,7 +141,7 @@ class CategoryControllerTest {
                 .body(catToUpdateMono, Category.class)
                 .exchange()
                 .expectStatus()
-                .isOk();
+                .isNotFound();
 
         verify(mockCategoryRepository, never()).save(any());
     }

@@ -4,6 +4,7 @@ import guru.springframework.spring5webfluxrest.domain.Category;
 import guru.springframework.spring5webfluxrest.repositories.CategoryRepository;
 import org.reactivestreams.Publisher;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -39,19 +40,23 @@ public class CategoryController {
     }
 
     @PatchMapping("/api/v1/categories/{id}")
-    Mono<Category> patch(@PathVariable String id, @RequestBody Category category) {
-        return categoryRepository.findById(id).flatMap(categoryFound->{
-            if (!categoryFound.equals(Mono.empty())){
-                if (!categoryFound.getDescription().equals(category.getDescription())) {
-                    categoryFound.setId(category.getDescription());
-                    return categoryRepository.save(categoryFound);
-                } else {
-                    return Mono.just(categoryFound);
-                }
-            } else {
-                return Mono.empty();
-            }
-        });
+    Mono<Category> patch(@PathVariable String id, @RequestBody Category category, ServerHttpResponse response) {
+
+        //Mono<Category> foundCategoryMono = categoryRepository.findById(id);
+
+        return categoryRepository.findById(id)
+                .flatMap(categoryFound->{
+                    if (!categoryFound.getDescription().equals(category.getDescription())) {
+                        categoryFound.setDescription(category.getDescription());
+                        return categoryRepository.save(categoryFound);
+                    } else {
+                        return Mono.just(categoryFound);
+                    }
+                })
+                .switchIfEmpty(Mono.defer(() -> {
+                    response.setStatusCode(HttpStatus.NOT_FOUND);
+                    return Mono.empty();
+                }));
 
     }
 
