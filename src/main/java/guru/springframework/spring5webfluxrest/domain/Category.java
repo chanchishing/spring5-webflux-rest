@@ -14,7 +14,8 @@ public class Category {
 
     @Id
     private String id;
-    private String description;
+    @Builder.Default
+    private String description="";
 }
 
 

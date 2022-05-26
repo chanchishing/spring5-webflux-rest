@@ -106,7 +106,6 @@ class CategoryControllerTest {
     @Test
     public void testPatchWithChanges() {
 
-
         given(mockCategoryRepository.findById(any(String.class)))
                 .willReturn(Mono.just(Category.builder().id("someID").description("old description").build()));
 
@@ -127,12 +126,32 @@ class CategoryControllerTest {
     }
 
     @Test
-    public void testPatchNoChanges() {
+    public void testPatchWithNoChange() {
+
+        given(mockCategoryRepository.findById(any(String.class)))
+                .willReturn(Mono.just(Category.builder().id("someID").description("old description").build()));
+
+
+        given(mockCategoryRepository.save(any(Category.class)))
+                .willReturn(Mono.just(Category.builder().build()));
+
+        Mono<Category> catToUpdateMono = Mono.just(Category.builder().description("old description").build());
+
+        webTestClient.patch()
+                .uri("/api/v1/categories/someID")
+                .body(catToUpdateMono, Category.class)
+                .exchange()
+                .expectStatus()
+                .isOk();
+
+        verify(mockCategoryRepository,never()).save(any());
+    }
+
+
+    @Test
+    public void testPatchNotFound() {
         given(mockCategoryRepository.findById(anyString()))
                 .willReturn(Mono.empty());
-
-        //given(mockCategoryRepository.save(any(Category.class)))
-        //        .willReturn(Mono.just(Category.builder().build()));
 
         Mono<Category> catToUpdateMono = Mono.just(Category.builder().build());
 

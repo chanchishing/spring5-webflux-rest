@@ -51,9 +51,7 @@ public class VendorController {
                         vendorFound.setFirstname(vendor.getFirstname());
                         patched=true;
                     }
-                    if ((vendor.getLastname()!==null) &&
-                            ()
-                            (!vendorFound.getLastname().equals(vendor.getLastname()))) {
+                    if (!vendorFound.getLastname().equals(vendor.getLastname())) {
                         vendorFound.setLastname(vendor.getLastname());
                         patched=true;
                     }

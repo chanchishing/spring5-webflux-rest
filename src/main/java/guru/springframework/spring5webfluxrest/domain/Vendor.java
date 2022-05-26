@@ -12,6 +12,8 @@ import org.springframework.data.mongodb.core.mapping.Document;
 public class Vendor {
     @Id
     String id;
-    String firstname;
-    String lastname;
+    @Builder.Default
+    String firstname="";
+    @Builder.Default
+    String lastname="";
 }

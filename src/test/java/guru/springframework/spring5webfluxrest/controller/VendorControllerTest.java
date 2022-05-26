@@ -2,6 +2,8 @@ package guru.springframework.spring5webfluxrest.controller;
 
 import guru.springframework.spring5webfluxrest.domain.Vendor;
 import guru.springframework.spring5webfluxrest.domain.Vendor;
+import guru.springframework.spring5webfluxrest.domain.Vendor;
+import guru.springframework.spring5webfluxrest.domain.Vendor;
 import guru.springframework.spring5webfluxrest.repositories.VendorRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -14,7 +16,9 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 class VendorControllerTest {
@@ -124,6 +128,45 @@ class VendorControllerTest {
                 .isOk();
 
         verify(mockVendorRepository).save(any());
+    }
+
+    @Test
+    public void testPatchWithNoChange() {
+
+        given(mockVendorRepository.findById(any(String.class)))
+                .willReturn(Mono.just(Vendor.builder().id("someID").firstname("old firstname").build()));
+
+
+        given(mockVendorRepository.save(any(Vendor.class)))
+                .willReturn(Mono.just(Vendor.builder().build()));
+
+        Mono<Vendor> vendorToUpdateMono = Mono.just(Vendor.builder().firstname("old firstname").build());
+
+        webTestClient.patch()
+                .uri("/api/v1/vendors/someID")
+                .body(vendorToUpdateMono, Vendor.class)
+                .exchange()
+                .expectStatus()
+                .isOk();
+
+        verify(mockVendorRepository,never()).save(any());
+    }
+
+    @Test
+    public void testPatchNotFound() {
+        given(mockVendorRepository.findById(anyString()))
+                .willReturn(Mono.empty());
+
+        Mono<Vendor> catToUpdateMono = Mono.just(Vendor.builder().build());
+
+        webTestClient.patch()
+                .uri("/api/v1/categories/asdfasdf")
+                .body(catToUpdateMono, Vendor.class)
+                .exchange()
+                .expectStatus()
+                .isNotFound();
+
+        verify(mockVendorRepository, never()).save(any());
     }
 
 }
