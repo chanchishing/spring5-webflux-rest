@@ -1,5 +1,8 @@
 package guru.springframework.spring5webfluxrest.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import guru.springframework.spring5webfluxrest.domain.Category;
 import guru.springframework.spring5webfluxrest.repositories.CategoryRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -35,6 +38,8 @@ class CategoryControllerTest {
         webTestClient = WebTestClient.bindToController(categoryController).build();
 
     }
+
+    ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
 
     @Test
     void list() {
@@ -104,14 +109,19 @@ class CategoryControllerTest {
     }
 
     @Test
-    public void testPatchWithChanges() {
+    public void testPatchWithChanges() throws JsonProcessingException {
+
+        Category mockCategoryB4Save=Category.builder().description("old description").build();
+        Category mockSavedCategory=Category.builder().description("new description").build();
+
+        String mockCategoryB4SaveJsonString = ow.writeValueAsString(mockCategoryB4Save);
+        String mockSavedCategoryJsonString = ow.writeValueAsString(mockSavedCategory);
 
         given(mockCategoryRepository.findById(any(String.class)))
-                .willReturn(Mono.just(Category.builder().id("someID").description("old description").build()));
-
+                .willReturn(Mono.just(mockCategoryB4Save));
 
         given(mockCategoryRepository.save(any(Category.class)))
-                .willReturn(Mono.just(Category.builder().build()));
+                .willReturn(Mono.just(mockSavedCategory));
 
         Mono<Category> catToUpdateMono = Mono.just(Category.builder().description("some description").build());
 
@@ -120,7 +130,10 @@ class CategoryControllerTest {
                 .body(catToUpdateMono, Category.class)
                 .exchange()
                 .expectStatus()
-                .isOk();
+                .isOk()
+                .expectBody().json(mockSavedCategoryJsonString,true);
+                //the B4 save Json String will fail
+                //.expectBody().json(mockCategoryB4SaveJsonString,true);
 
         verify(mockCategoryRepository).save(any());
     }
@@ -149,7 +162,7 @@ class CategoryControllerTest {
 
 
     @Test
-    public void testPatchNotFound() {
+    public void testPatchNotFound() throws JsonProcessingException {
         given(mockCategoryRepository.findById(anyString()))
                 .willReturn(Mono.empty());
 
@@ -160,7 +173,10 @@ class CategoryControllerTest {
                 .body(catToUpdateMono, Category.class)
                 .exchange()
                 .expectStatus()
-                .isNotFound();
+                .isNotFound()
+                .expectBody().isEmpty();
+
+
 
         verify(mockCategoryRepository, never()).save(any());
     }
